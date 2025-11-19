@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium Request — User</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Benutzerbereich</a>
+    <div>
+      <button id="logoutBtn" class="btn btn-outline-light btn-sm">Abmelden</button>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Neue Anfrage</h5>
+      <form id="reqForm">
+        <input id="title" class="form-control mb-2" placeholder="Titel" required>
+        <textarea id="body" class="form-control mb-2" placeholder="Beschreibe dein Anliegen" rows="4" required></textarea>
+        <div class="d-grid">
+          <button class="btn btn-primary">Absenden</button>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-6">
+      <h5>Deine Anfragen & Antworten</h5>
+      <div id="myRequests"></div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+<script>
+  App.requireLogin('user'); // blockiert wenn nicht user
+
+  document.getElementById('logoutBtn').addEventListener('click', ()=> App.logout());
+
+  document.getElementById('reqForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const t = document.getElementById('title').value.trim();
+    const b = document.getElementById('body').value.trim();
+    App.createRequest(t,b);
+    document.getElementById('title').value='';
+    document.getElementById('body').value='';
+    renderMyRequests();
+    alert('Anfrage gespeichert (nur lokal).');
+  });
+
+  function renderMyRequests(){
+    const container = document.getElementById('myRequests');
+    container.innerHTML = '';
+    const reqs = App.getRequestsForCurrentUser();
+    if(reqs.length === 0) container.innerHTML = '<div class="text-muted">Keine Anfragen.</div>';
+    reqs.forEach(r=>{
+      const div = document.createElement('div');
+      div.className = 'card mb-2';
+      div.innerHTML = `
+        <div class="card-body">
+          <h6 class="card-title">${r.title}</h6>
+          <p class="card-text">${r.body}</p>
+          ${r.reply ? `<div class="alert alert-success">Antwort: ${r.reply}</div>` : '<div class="text-muted small">Noch keine Antwort.</div>'}
+          <small class="text-muted">${new Date(r.createdAt).toLocaleString()}</small>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  renderMyRequests();
+</script>
+</body>
+</html>
