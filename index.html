@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium Request — Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient">
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="card-title mb-3 text-center">Premium Request</h2>
+            <p class="text-muted text-center small">Melde dich an — Standardaccounts sind verborgen (Init im Hintergrund).</p>
+
+            <form id="loginForm" class="mb-3">
+              <div class="mb-3">
+                <label class="form-label">Nutzername</label>
+                <input id="username" type="text" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Passwort</label>
+                <input id="password" type="password" class="form-control" required>
+              </div>
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" type="submit">Anmelden</button>
+              </div>
+            </form>
+
+            <div class="text-center">
+              <small class="text-muted">Kein Account? <a href="user.html">Demo Benutzerseite öffnen</a> (nur Demo).</small>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // initialisierung & login handler
+    App.init();
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+      const user = App.login(u,p);
+      if(!user){
+        alert('Ungültige Anmeldedaten.');
+        return;
+      }
+      // redirect je nach Rolle
+      if(user.role === 'admin') location.href = 'admin.html';
+      else location.href = 'user.html';
+    });
+  </script>
+</body>
+</html>
