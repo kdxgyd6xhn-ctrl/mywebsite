@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium Request — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Admin Dashboard</a>
+    <div>
+      <button id="logoutBtn" class="btn btn-outline-light btn-sm">Abmelden</button>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <h4>Anfragen</h4>
+      <div id="requestsList" class="list-group mb-4"></div>
+    </div>
+    <div class="col-lg-4">
+      <h5>Benutzerverwaltung</h5>
+      <form id="createUserForm" class="mb-3">
+        <input class="form-control mb-2" id="newUser" placeholder="Nutzername" required>
+        <input class="form-control mb-2" id="newPass" placeholder="Passwort" required>
+        <select id="newRole" class="form-select mb-2">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <div class="d-grid">
+          <button class="btn btn-success">Erstelle Nutzer</button>
+        </div>
+      </form>
+
+      <h6>Bestehende Nutzer</h6>
+      <ul id="userList" class="list-group"></ul>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+<script>
+  App.requireLogin('admin'); // blockiert wenn nicht admin
+  document.getElementById('logoutBtn').addEventListener('click', ()=> App.logout());
+
+  // render requests
+  function renderRequests(){
+    const list = document.getElementById('requestsList');
+    list.innerHTML = '';
+    const reqs = App.getAllRequests();
+    if(reqs.length === 0) list.innerHTML = '<div class="text-muted">Keine Anfragen.</div>';
+    reqs.forEach(r=>{
+      const el = document.createElement('div');
+      el.className = 'list-group-item';
+      el.innerHTML = `
+        <div class="d-flex w-100 justify-content-between">
+          <h6 class="mb-1">${r.title}</h6>
+          <small>${new Date(r.createdAt).toLocaleString()}</small>
+        </div>
+        <p class="mb-1">${r.body}</p>
+        <p class="mb-1"><strong>Von:</strong> ${r.username}</p>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-primary me-2" onclick="reply('${r.id}')">Antworten</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteRequest('${r.id}')">Löschen</button>
+        </div>
+        ${r.reply ? `<hr><strong>Antwort:</strong><p>${r.reply}</p>` : ''}
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  window.reply = function(id){
+    const text = prompt('Antwort eingeben:');
+    if(text !== null){
+      App.replyRequest(id, text);
+      renderRequests();
+      alert('Antwort gespeichert (nur lokal).');
+    }
+  }
+
+  window.deleteRequest = function(id){
+    if(confirm('Wirklich löschen?')) {
+      App.deleteRequest(id);
+      renderRequests();
+    }
+  }
+
+  // user management
+  function renderUsers(){
+    const ul = document.getElementById('userList');
+    ul.innerHTML = '';
+    App.getAllUsers().forEach(u=>{
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `<div><strong>${u.username}</strong> <small class="text-muted">(${u.role})</small></div>
+        <div>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.username}')">Löschen</button>
+        </div>`;
+      ul.appendChild(li);
+    });
+  }
+
+  document.getElementById('createUserForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const u = document.getElementById('newUser').value.trim();
+    const p = document.getElementById('newPass').value;
+    const r = document.getElementById('newRole').value;
+    if(App.createUser(u,p,r)) {
+      alert('Benutzer erstellt.');
+      renderUsers();
+    } else alert('Fehler: Benutzer existiert bereits.');
+  });
+
+  window.deleteUser = function(username){
+    if(confirm('Benutzer '+username+' löschen?')) {
+      App.deleteUser(username);
+      renderUsers();
+    }
+  }
+
+  renderRequests();
+  renderUsers();
+</script>
+</body>
+</html>
